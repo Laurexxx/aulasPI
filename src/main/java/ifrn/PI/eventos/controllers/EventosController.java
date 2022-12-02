@@ -3,14 +3,18 @@ package ifrn.PI.eventos.controllers;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import ifrn.PI.eventos.models.Convidado;
 import ifrn.PI.eventos.models.Evento;
@@ -34,10 +38,15 @@ public class EventosController {
 	}
 
 	@PostMapping
-	public String salvar(Evento evento) {
+	public String salvar(@Valid Evento evento, BindingResult result, RedirectAttributes attributes) {
+		
+		if(result.hasErrors()) {
+			return form(evento);
+		}
 
 		System.out.println(evento);
 		er.save(evento);
+		attributes.addAttribute("mensagem", "Evento salvo com sucesso!");
 
 		return "redirect:/eventos";
 	}
@@ -137,7 +146,7 @@ public class EventosController {
 	}
 
 	@GetMapping("/{id}/remover")
-	public String apagarEvento(@PathVariable Long id) {
+	public String apagarEvento(@PathVariable Long id, RedirectAttributes attributes) {
 
 		Optional<Evento> opt = er.findById(id);
 
@@ -148,6 +157,7 @@ public class EventosController {
 
 			cr.deleteAll(convidados);
 			er.delete(evento);
+			attributes.addFlashAttribute("mensagem", "Evento removido com sucesso!");
 		}
 
 		return "redirect:/eventos";
